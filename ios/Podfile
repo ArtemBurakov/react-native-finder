@@ -12,6 +12,10 @@ target 'Finder' do
     :hermes_enabled => false
   )
 
+  pod 'react-native-geolocation', :path => '../node_modules/@react-native-community/geolocation'
+
+  pod 'react-native-location', :path => '../node_modules/react-native-location'
+
   target 'FinderTests' do
     inherit! :complete
     # Pods for testing
