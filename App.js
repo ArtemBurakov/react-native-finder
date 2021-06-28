@@ -1,14 +1,34 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { StyleSheet, View, StatusBar, PermissionsAndroid } from 'react-native';
 
-import MapView from 'react-native-maps';
+import MapView, { Camera, PROVIDER_GOOGLE } from 'react-native-maps';
 import Geolocation from 'react-native-geolocation-service';
+import RNAndroidLocationEnabler from 'react-native-android-location-enabler';
+
+RNAndroidLocationEnabler.promptForEnableLocationIfNeeded({
+  interval: 10000,
+  fastInterval: 5000,
+})
+  .then((data) => {
+    console.log(data);
+    // The user has accepted to enable the location services
+    // data can be :
+    //  - "already-enabled" if the location services has been already enabled
+    //  - "enabled" if user has clicked on OK button in the popup
+  })
+  .catch((err) => {
+    console.log(err);
+    // The user has not accepted to enable the location services or something went wrong during the process
+    // "err" : { "code" : "ERR00|ERR01|ERR02|ERR03", "message" : "message"}
+    // codes :
+    //  - ERR00 : The user has clicked on Cancel button in the popup
+    //  - ERR01 : If the Settings change are unavailable
+    //  - ERR02 : If the popup has failed to open
+    //  - ERR03 : Internal error
+  });
 
 const App = () => {
-
-  const [locationPermission, setLocationPermission] = useState(false);
-  const [initialLatitude, setInitialLatitude] = useState(37.78825);
-  const [initialLongitude, setInitialLongitude] = useState(-122.4324);
+  const mapRef = useRef(null);
 
   const requestLocationPermission = async () => {
     try {
@@ -26,47 +46,71 @@ const App = () => {
       );
       if (granted === PermissionsAndroid.RESULTS.GRANTED) {
         console.log('Location permission approved');
-        setLocationPermission(true);
+        getInitialLocation();
       } else {
         console.log("Location permission denied");
-        setLocationPermission(false);
       }
     } catch (err) {
       console.warn(err);
     }
   };
 
-  useEffect(() => {
-    requestLocationPermission();
+  const getInitialLocation = () => {
+    Geolocation.getCurrentPosition(
+      (position) => {
+        const latitude = position.coords.latitude;
+        const longitude = position.coords.longitude;
 
-    if (locationPermission) {
-      Geolocation.getCurrentPosition(
-        (position) => {
-          console.log(position);
-          setInitialLatitude(position.coords.latitude);
-          setInitialLongitude(position.coords.longitude);
-        },
-        (error) => {
-          // See error code charts below.
-          console.log(error.code, error.message);
-        },
-        { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
-      );
+        navigateCamereToLocation(latitude, longitude);
+      },
+      (err) => {
+        console.log(err);
+      },
+      { enableHighAccuracy: true }
+    );
+  }
+
+  const navigateCamereToLocation = (newLatitude, newlongitude) => {
+    console.log('navigateCamereToLocation');
+
+    // Animate camera to your location
+    if (mapRef.current) {
+      const newCamera = {
+        center: { latitude: newLatitude, longitude: newlongitude },
+        zoom: 18,
+        heading: 0,
+        pitch: 45,
+        altitude: 5,
+      }
+      mapRef.current.animateCamera(newCamera, { duration: 2500 });
     }
-  });
+  }
+
+  useEffect(() => {
+    PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION).then(response => {
+      if (response === true) {
+        getInitialLocation();
+      }
+      else {
+        requestLocationPermission();
+      }
+  })
+  }, []);
 
   return (
     <View style={styles.container}>
       <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
       <MapView
+        ref={mapRef}
         style={styles.map}
+        provider={PROVIDER_GOOGLE}
         showsUserLocation={true}
-        region={{
-          latitude: initialLatitude,
-          longitude: initialLongitude,
-          latitudeDelta: 0.015,
-          longitudeDelta: 0.0121,
-        }}
+        // onUserLocationChange={
+        //   (e) => {
+        //     setInitialLatitude(e.nativeEvent.coordinate.latitude);
+        //     setInitialLongitude(e.nativeEvent.coordinate.longitude);
+        //   }
+        // }
       />
     </View>
   );
