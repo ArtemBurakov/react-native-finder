@@ -16,6 +16,10 @@ target 'Finder' do
 
   pod 'react-native-location', :path => '../node_modules/react-native-location'
 
+  pod 'RNVectorIcons', :path => '../node_modules/react-native-vector-icons'
+
+  pod 'RNSecureStorage', :path => '../node_modules/react-native-secure-storage'
+
   target 'FinderTests' do
     inherit! :complete
     # Pods for testing
