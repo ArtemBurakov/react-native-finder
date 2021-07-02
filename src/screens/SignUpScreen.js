@@ -3,15 +3,21 @@ import { StyleSheet, StatusBar, Button, TextInput, View } from 'react-native';
 
 import AuthContext from '../context/AuthContext';
 
-function SignInScreen({ navigation }) {
+function SignUpScreen() {
+  const [email, setEmail] = React.useState('');
   const [username, setUsername] = React.useState('');
   const [password, setPassword] = React.useState('');
 
-  const { signIn } = React.useContext(AuthContext);
+  const { signUp } = React.useContext(AuthContext);
 
   return (
     <View style={styles.container}>
       <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
+      <TextInput
+        placeholder="Email"
+        value={email}
+        onChangeText={setEmail}
+      />
       <TextInput
         placeholder="Username"
         value={username}
@@ -23,8 +29,7 @@ function SignInScreen({ navigation }) {
         onChangeText={setPassword}
         secureTextEntry
       />
-      <Button title="Sign in" onPress={() => signIn({ username, password })} />
-      <Button title="Sign up" onPress={() => navigation.navigate('SignUp')} />
+      <Button title="Sign up" onPress={() => signUp({ email, username, password })} />
     </View>
   );
 }
@@ -37,4 +42,4 @@ const styles = StyleSheet.create({
   }
 });
 
-export default SignInScreen;
+export default SignUpScreen;

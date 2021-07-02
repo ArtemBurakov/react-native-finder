@@ -4,6 +4,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 
 import HomeScreen from './src/screens/HomeScreen';
 import SignInScreen from './src/screens/SignInScreen';
+import SignUpScreen from './src/screens/SignUpScreen';
 import SplashScreen from './src/screens/SplashScreen';
 
 import * as SecureStore from 'expo-secure-store';
@@ -101,7 +102,10 @@ function App({ navigation }) {
             <Stack.Screen name="Splash" component={SplashScreen} options={{headerShown:false}} />
           ) : state.userToken == null ? (
             // No token found, user isn't signed in
-            <Stack.Screen name="SignIn" component={SignInScreen} options={{headerShown:false}} />
+            <>
+              <Stack.Screen name="SignIn" component={SignInScreen} options={{headerShown:false}} />
+              <Stack.Screen name="SignUp" component={SignUpScreen} options={{headerShown:false}} />
+            </>
           ) : (
             // User is signed in
             <Stack.Screen name="Home" component={HomeScreen} options={{headerShown:false}} />
