@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { StyleSheet, View, StatusBar, PermissionsAndroid } from 'react-native';
+import { useIsFocused } from "@react-navigation/native";
 
 import MapView, { PROVIDER_GOOGLE } from 'react-native-maps';
 import Geolocation from 'react-native-geolocation-service';
@@ -29,6 +30,7 @@ RNAndroidLocationEnabler.promptForEnableLocationIfNeeded({
 
 function ExploreScreen() {
   const mapRef = useRef(null);
+  const isFocused = useIsFocused();
 
   const requestLocationPermission = async () => {
     try {
@@ -70,13 +72,13 @@ function ExploreScreen() {
     );
   }
 
-  const navigateCamereToLocation = (newLatitude, newlongitude) => {
+  const navigateCamereToLocation = (newLatitude, newLongitude) => {
     console.log('navigateCamereToLocation');
 
     // Animate camera to your location
     if (mapRef.current) {
       const newCamera = {
-        center: { latitude: newLatitude, longitude: newlongitude },
+        center: { latitude: newLatitude, longitude: newLongitude },
         zoom: 17,
         heading: 0,
         pitch: 45,
@@ -94,8 +96,8 @@ function ExploreScreen() {
       else {
         requestLocationPermission();
       }
-  })
-  }, []);
+    });
+  }, [isFocused]);
 
   return (
     <View style={styles.container}>
