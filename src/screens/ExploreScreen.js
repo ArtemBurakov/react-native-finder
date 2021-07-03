@@ -1,6 +1,5 @@
 import React, { useEffect, useRef } from 'react';
 import { StyleSheet, View, StatusBar, PermissionsAndroid } from 'react-native';
-import { useIsFocused } from "@react-navigation/native";
 
 import MapView, { PROVIDER_GOOGLE } from 'react-native-maps';
 import Geolocation from 'react-native-geolocation-service';
@@ -30,7 +29,6 @@ RNAndroidLocationEnabler.promptForEnableLocationIfNeeded({
 
 function ExploreScreen() {
   const mapRef = useRef(null);
-  const isFocused = useIsFocused();
 
   const requestLocationPermission = async () => {
     try {
@@ -97,7 +95,7 @@ function ExploreScreen() {
         requestLocationPermission();
       }
     });
-  }, [isFocused]);
+  }, []);
 
   return (
     <View style={styles.container}>

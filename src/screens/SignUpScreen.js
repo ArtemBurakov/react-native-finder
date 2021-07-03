@@ -3,7 +3,7 @@ import { StyleSheet, StatusBar, Button, TextInput, View } from 'react-native';
 
 import AuthContext from '../context/AuthContext';
 
-function SignUpScreen() {
+function SignUpScreen({ navigation }) {
   const [email, setEmail] = React.useState('');
   const [username, setUsername] = React.useState('');
   const [password, setPassword] = React.useState('');
@@ -29,7 +29,10 @@ function SignUpScreen() {
         onChangeText={setPassword}
         secureTextEntry
       />
-      <Button title="Sign up" onPress={() => signUp({ email, username, password })} />
+      <Button title="Sign up" onPress={() => {
+        signUp({ email, username, password });
+        navigation.navigate('SignIn');
+      }} />
     </View>
   );
 }

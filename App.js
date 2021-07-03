@@ -10,6 +10,8 @@ import SplashScreen from './src/screens/SplashScreen';
 import * as SecureStore from 'expo-secure-store';
 import AuthContext from './src/context/AuthContext';
 
+import axios from 'axios';
+
 const Stack = createStackNavigator();
 
 function App({ navigation }) {
@@ -46,11 +48,11 @@ function App({ navigation }) {
   React.useEffect(() => {
     // Fetch the token from storage then navigate to our appropriate place
     const bootstrapAsync = async () => {
-      let userToken;
+      let userAccessToken;
 
       try {
         // Restore token stored in `SecureStore` or any other encrypted storage
-        userToken = await SecureStore.getItemAsync('userToken');
+        userAccessToken = await SecureStore.getItemAsync('userAccessToken');
       } catch (e) {
         // Restoring token failed
       }
@@ -59,7 +61,7 @@ function App({ navigation }) {
 
       // This will switch to the App screen or Auth screen and this loading
       // screen will be unmounted and thrown away.
-      dispatch({ type: 'RESTORE_TOKEN', token: userToken });
+      dispatch({ type: 'RESTORE_TOKEN', token: userAccessToken });
     };
 
     bootstrapAsync();
@@ -68,26 +70,44 @@ function App({ navigation }) {
   const authContext = React.useMemo(
     () => ({
       signIn: async (data) => {
-        // In a production app, we need to send some data (usually username, password) to server and get a token
-        // We will also need to handle errors if sign in failed
-        // After getting token, we need to persist the token using `SecureStore` or any other encrypted storage
-        // In the example, we'll use a dummy token
+        let userAccessToken;
 
-        await SecureStore.setItemAsync('userToken', 'dummy-auth-token');
-        dispatch({ type: 'SIGN_IN', token: 'dummy-auth-token' });
+        axios({
+          method: 'post',
+          url: 'http://10.0.2.2:3000/users/authorize/',
+          data: {
+            password: data.password,
+            email: data.email
+          }
+        }).then((response) => {
+          userAccessToken = response.data.access_token;
+        }, (error) => {
+          console.log(error);
+        });
+
+        await SecureStore.setItemAsync('userAccessToken', `${userAccessToken}`);
+        dispatch({ type: 'SIGN_IN', token: `${userAccessToken}` });
       },
       signOut: async () => {
-        await SecureStore.deleteItemAsync('userToken');
+        await SecureStore.deleteItemAsync('userAccessToken');
         dispatch({ type: 'SIGN_OUT' })
       },
       signUp: async (data) => {
-        // In a production app, we need to send user data to server and get a token
-        // We will also need to handle errors if sign up failed
-        // After getting token, we need to persist the token using `SecureStore` or any other encrypted storage
-        // In the example, we'll use a dummy token
+        axios({
+          method: 'post',
+          url: 'http://10.0.2.2:3000/users/',
+          data: {
+            username: data.username,
+            password: data.password,
+            email: data.email
+          }
+        }).then((response) => {
+          console.log(response);
+        }, (error) => {
+          console.log(error);
+        });
 
-        await SecureStore.setItemAsync('userToken', 'dummy-auth-token');
-        dispatch({ type: 'SIGN_IN', token: 'dummy-auth-token' });
+        dispatch({ type: 'SIGN_OUT'});
       },
     }),
     []
