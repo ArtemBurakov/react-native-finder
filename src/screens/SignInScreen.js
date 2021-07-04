@@ -3,11 +3,31 @@ import { StyleSheet, StatusBar, Button, TextInput, View } from 'react-native';
 
 import AuthContext from '../context/AuthContext';
 
+import axios from 'axios';
+
 function SignInScreen({ navigation }) {
   const [password, setPassword] = React.useState('');
   const [email, setEmail] = React.useState('');
 
   const { signIn } = React.useContext(AuthContext);
+
+  const signInUser = () => {
+    console.log('SignIn -> Email = ' + email + ', Password = ' + password);
+
+    axios({
+      method: 'post',
+      url: 'http://localhost:3000/users/authorize/',
+      data: {
+        password: password,
+        email: email
+      }
+    }).then((response) => {
+      console.log('Successful SignIn!');
+      signIn(response.data.access_token);
+    }, (error) => {
+      console.log(error);
+    });
+  }
 
   return (
     <View style={styles.container}>
@@ -23,7 +43,7 @@ function SignInScreen({ navigation }) {
         onChangeText={setPassword}
         secureTextEntry
       />
-      <Button title="Sign in" onPress={() => signIn({ password, email })} />
+      <Button title="Sign in" onPress={() => signInUser()} />
       <Button title="Sign up" onPress={() => navigation.navigate('SignUp')} />
     </View>
   );

@@ -1,14 +1,32 @@
 import * as React from 'react';
 import { StyleSheet, StatusBar, Button, TextInput, View } from 'react-native';
 
-import AuthContext from '../context/AuthContext';
+import axios from 'axios';
 
 function SignUpScreen({ navigation }) {
   const [email, setEmail] = React.useState('');
   const [username, setUsername] = React.useState('');
   const [password, setPassword] = React.useState('');
 
-  const { signUp } = React.useContext(AuthContext);
+  const signUpUser = () => {
+    console.log('SignUp -> Username = ' + username + ', Password = ' + password + ', Email = ' + email);
+
+    axios({
+      method: 'post',
+      url: 'http://localhost:3000/users/',
+      data: {
+        username: username,
+        password: password,
+        email: email
+      }
+    }).then((response) => {
+      console.log('Successful SignUp!');
+
+      navigation.navigate('SignIn');
+    }, (error) => {
+      console.log(error);
+    });
+  }
 
   return (
     <View style={styles.container}>
@@ -29,10 +47,10 @@ function SignUpScreen({ navigation }) {
         onChangeText={setPassword}
         secureTextEntry
       />
-      <Button title="Sign up" onPress={() => {
-        signUp({ email, username, password });
-        navigation.navigate('SignIn');
-      }} />
+      <Button
+        title="Sign up"
+        onPress={signUpUser}
+      />
     </View>
   );
 }

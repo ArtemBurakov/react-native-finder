@@ -10,8 +10,6 @@ import SplashScreen from './src/screens/SplashScreen';
 import * as SecureStore from 'expo-secure-store';
 import AuthContext from './src/context/AuthContext';
 
-import axios from 'axios';
-
 const Stack = createStackNavigator();
 
 function App({ navigation }) {
@@ -21,27 +19,27 @@ function App({ navigation }) {
         case 'RESTORE_TOKEN':
           return {
             ...prevState,
-            userToken: action.token,
+            userAccessToken: action.token,
             isLoading: false,
           };
         case 'SIGN_IN':
           return {
             ...prevState,
             isSignout: false,
-            userToken: action.token,
+            userAccessToken: action.token,
           };
         case 'SIGN_OUT':
           return {
             ...prevState,
             isSignout: true,
-            userToken: null,
+            userAccessToken: null,
           };
       }
     },
     {
       isLoading: true,
       isSignout: false,
-      userToken: null,
+      userAccessToken: null,
     }
   );
 
@@ -69,45 +67,13 @@ function App({ navigation }) {
 
   const authContext = React.useMemo(
     () => ({
-      signIn: async (data) => {
-        let userAccessToken;
-
-        axios({
-          method: 'post',
-          url: 'http://10.0.2.2:3000/users/authorize/',
-          data: {
-            password: data.password,
-            email: data.email
-          }
-        }).then((response) => {
-          userAccessToken = response.data.access_token;
-        }, (error) => {
-          console.log(error);
-        });
-
+      signIn: async (userAccessToken) => {
         await SecureStore.setItemAsync('userAccessToken', `${userAccessToken}`);
         dispatch({ type: 'SIGN_IN', token: `${userAccessToken}` });
       },
       signOut: async () => {
         await SecureStore.deleteItemAsync('userAccessToken');
-        dispatch({ type: 'SIGN_OUT' })
-      },
-      signUp: async (data) => {
-        axios({
-          method: 'post',
-          url: 'http://10.0.2.2:3000/users/',
-          data: {
-            username: data.username,
-            password: data.password,
-            email: data.email
-          }
-        }).then((response) => {
-          console.log(response);
-        }, (error) => {
-          console.log(error);
-        });
-
-        dispatch({ type: 'SIGN_OUT'});
+        dispatch({ type: 'SIGN_OUT' });
       },
     }),
     []
@@ -120,7 +86,7 @@ function App({ navigation }) {
           {state.isLoading ? (
             // We haven't finished checking for the token yet
             <Stack.Screen name="Splash" component={SplashScreen} options={{headerShown:false}} />
-          ) : state.userToken == null ? (
+          ) : state.userAccessToken == null ? (
             // No token found, user isn't signed in
             <>
               <Stack.Screen name="SignIn" component={SignInScreen} options={{headerShown:false}} />

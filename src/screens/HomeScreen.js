@@ -35,7 +35,7 @@ function HomeScreen() {
           },
         })}
         tabBarOptions={{
-          activeTintColor: 'blue',
+          activeTintColor: 'royalblue',
           inactiveTintColor: 'gray',
         }}
       >
