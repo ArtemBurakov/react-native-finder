@@ -5,6 +5,8 @@ import MapView, { PROVIDER_GOOGLE } from 'react-native-maps';
 import Geolocation from 'react-native-geolocation-service';
 import RNAndroidLocationEnabler from 'react-native-android-location-enabler';
 
+import messaging from '@react-native-firebase/messaging';
+
 RNAndroidLocationEnabler.promptForEnableLocationIfNeeded({
   interval: 10000,
   fastInterval: 5000,

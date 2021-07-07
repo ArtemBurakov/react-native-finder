@@ -13,7 +13,7 @@ function SignUpScreen({ navigation }) {
 
     axios({
       method: 'post',
-      url: 'http://localhost:3000/users/',
+      url: 'http://10.0.2.2:3000/users/',
       data: {
         username: username,
         password: password,

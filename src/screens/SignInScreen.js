@@ -16,7 +16,7 @@ function SignInScreen({ navigation }) {
 
     axios({
       method: 'post',
-      url: 'http://localhost:3000/users/authorize/',
+      url: 'http://10.0.2.2:3000/users/authorize/',
       data: {
         password: password,
         email: email

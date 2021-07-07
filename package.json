@@ -13,6 +13,8 @@
     "@react-native-async-storage/async-storage": "^1.15.5",
     "@react-native-community/geolocation": "^2.0.2",
     "@react-native-community/masked-view": "^0.1.11",
+    "@react-native-firebase/app": "^12.1.0",
+    "@react-native-firebase/messaging": "^12.1.0",
     "@react-navigation/bottom-tabs": "^5.11.11",
     "@react-navigation/native": "^5.9.4",
     "@react-navigation/stack": "^5.14.5",
@@ -29,6 +31,7 @@
     "react-native-safe-area-context": "^3.2.0",
     "react-native-screens": "^3.4.0",
     "react-native-unimodules": "^0.13.3",
+    "react-native-update-gradle": "^1.2.0",
     "react-native-vector-icons": "^8.1.0"
   },
   "devDependencies": {
