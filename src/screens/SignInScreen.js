@@ -2,7 +2,6 @@ import * as React from 'react';
 import { StyleSheet, StatusBar, Button, TextInput, View } from 'react-native';
 
 import AuthContext from '../context/AuthContext';
-
 import axios from 'axios';
 
 function SignInScreen({ navigation }) {
@@ -18,12 +17,12 @@ function SignInScreen({ navigation }) {
       method: 'post',
       url: 'http://10.0.2.2:3000/users/authorize/',
       data: {
-        password: password,
-        email: email
+        email: email,
+        password: password
       }
     }).then((response) => {
-      console.log('Successful SignIn!');
-      signIn(response.data.access_token);
+      console.log('SignIn successful');
+      signIn(response.data.data.access_token);
     }, (error) => {
       console.log(error);
     });

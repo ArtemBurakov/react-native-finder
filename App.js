@@ -10,9 +10,6 @@ import SplashScreen from './src/screens/SplashScreen';
 import * as SecureStore from 'expo-secure-store';
 import AuthContext from './src/context/AuthContext';
 
-import axios from 'axios';
-import messaging from '@react-native-firebase/messaging';
-
 const Stack = createStackNavigator();
 
 function App({ navigation }) {
@@ -47,25 +44,6 @@ function App({ navigation }) {
   );
 
   React.useEffect(() => {
-    // Get FCM token and save it to secure storage
-    const getFCMToken = async () => {
-      const initialFcmToken = await SecureStore.getItemAsync('FCMToken');
-
-      if (!initialFcmToken) {
-        // Register the device with FCM
-        await messaging().registerDeviceForRemoteMessages();
-
-        // Get the token
-        const fcmToken = await messaging().getToken();
-        console.log('Getting FCM token -> ' + fcmToken);
-
-        // Save the token to secure storage
-        await SecureStore.setItemAsync('FCMToken', fcmToken);
-      }
-    }
-
-    getFCMToken();
-
     // Fetch the token from storage then navigate to our appropriate place
     const bootstrapAsync = async () => {
       let userAccessToken;
@@ -91,7 +69,6 @@ function App({ navigation }) {
     () => ({
       signIn: async (userAccessToken) => {
         await SecureStore.setItemAsync('userAccessToken', `${userAccessToken}`);
-        sendFcmToken();
         dispatch({ type: 'SIGN_IN', token: `${userAccessToken}` });
       },
       signOut: async () => {
@@ -101,44 +78,6 @@ function App({ navigation }) {
     }),
     []
   );
-
-  const sendFcmToken = async () => {
-    const userAccessToken = await SecureStore.getItemAsync('userAccessToken');
-
-    // Get the token from SecureStorage
-    const fcmToken = await SecureStore.getItemAsync('FCMToken');
-    console.log('Sending FCM Token -> ' + fcmToken);
-
-    axios({
-      method: 'post',
-      url: 'http://10.0.2.2:3000/user-fcm-tokens/',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + userAccessToken,
-      },
-      data: {
-        registration_token: fcmToken,
-      }
-    }).then( async (response) => {
-      console.log('FCM Token added successful! Token id -> ', response.data.id);
-
-      await SecureStore.setItemAsync('isFCMTokenSaved', `${true}`);
-    }, (error) => {
-      console.log(error);
-    });
-  }
-
-  // Triggered when have new token
-  messaging().onTokenRefresh(async (newFcmToken) => {
-    const isFcmTokenSaved = await SecureStore.getItemAsync('isFCMTokenSaved');
-
-    if (isFcmTokenSaved) {
-      console.log('[FCMService] new token refresg -> ', newFcmToken);
-      await SecureStore.setItemAsync('userAccessToken', `${newFcmToken}`);
-
-      sendFcmToken();
-    }
-  });
 
   return (
     <AuthContext.Provider value={authContext}>
