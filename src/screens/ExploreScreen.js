@@ -1,10 +1,12 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { StyleSheet, View, StatusBar, PermissionsAndroid } from 'react-native';
 
-import MapView, { PROVIDER_GOOGLE } from 'react-native-maps';
+import MapView, { PROVIDER_GOOGLE, Marker } from 'react-native-maps';
 import Geolocation from 'react-native-geolocation-service';
 import RNAndroidLocationEnabler from 'react-native-android-location-enabler';
 
+import axios from 'axios';
+import * as SecureStore from 'expo-secure-store';
 import messaging from '@react-native-firebase/messaging';
 
 RNAndroidLocationEnabler.promptForEnableLocationIfNeeded({
@@ -31,6 +33,8 @@ RNAndroidLocationEnabler.promptForEnableLocationIfNeeded({
 
 function ExploreScreen() {
   const mapRef = useRef(null);
+  const [markerLatitude, setMarkerLatitude] = useState(49.4551195854);
+  const [markerLongitude, setMarkerLongitude] = useState(32.0339957535);
 
   const requestLocationPermission = async () => {
     try {
@@ -86,6 +90,32 @@ function ExploreScreen() {
     }
   }
 
+  const sendCoordinatesToServer = async (latitude, longitude) => {
+    console.log('Sending coordinates to server');
+
+    const userAccessToken = await SecureStore.getItemAsync('userAccessToken');
+
+    axios({
+      method: 'post',
+      url: 'http://10.0.2.2:3000/userCoordinates/',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + userAccessToken,
+      },
+      data: {
+        latitude: `${latitude}`,
+        longitude: `${longitude}`
+      }
+    }).then((response) => {
+      console.log('Coordinates send successful!');
+    }, (error) => {
+      if (error.response.status === 401) {
+        console.log('Unauthorized, logging out.');
+        signOut();
+      }
+    });
+  }
+
   useEffect(() => {
     PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION).then(response => {
       if (response === true) {
@@ -94,6 +124,11 @@ function ExploreScreen() {
       else {
         requestLocationPermission();
       }
+    });
+
+    messaging().onMessage(async remoteMessage => {
+      setMarkerLatitude(parseFloat(remoteMessage.data.latitude));
+      setMarkerLongitude(parseFloat(remoteMessage.data.longitude));
     });
   }, []);
 
@@ -105,13 +140,19 @@ function ExploreScreen() {
         style={styles.map}
         provider={PROVIDER_GOOGLE}
         showsUserLocation={true}
-        // onUserLocationChange={
-        //   (e) => {
-        //     setInitialLatitude(e.nativeEvent.coordinate.latitude);
-        //     setInitialLongitude(e.nativeEvent.coordinate.longitude);
-        //   }
-        // }
-      />
+        onUserLocationChange={
+          (e) => {
+            latitude = e.nativeEvent.coordinate.latitude;
+            longitude = e.nativeEvent.coordinate.longitude;
+
+            sendCoordinatesToServer(latitude, longitude);
+          }
+        }
+      >
+        {/* <Marker
+          coordinate={{ latitude : markerLatitude , longitude : markerLongitude }}
+        /> */}
+      </MapView>
     </View>
   );
 };
