@@ -94,15 +94,17 @@ function ExploreScreen() {
     console.log('Sending coordinates to server');
 
     const userAccessToken = await SecureStore.getItemAsync('userAccessToken');
+    const email = await SecureStore.getItemAsync('email');
 
     axios({
       method: 'post',
-      url: 'http://10.0.2.2:3000/userCoordinates/',
+      url: 'http://10.0.2.2:3000/users/coordinates/',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ' + userAccessToken,
       },
       data: {
+        email: email,
         latitude: `${latitude}`,
         longitude: `${longitude}`
       }
@@ -149,9 +151,6 @@ function ExploreScreen() {
           }
         }
       >
-        {/* <Marker
-          coordinate={{ latitude : markerLatitude , longitude : markerLongitude }}
-        /> */}
       </MapView>
     </View>
   );

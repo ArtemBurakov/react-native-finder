@@ -22,7 +22,7 @@ function SignInScreen({ navigation }) {
       }
     }).then((response) => {
       console.log('SignIn successful');
-      signIn(response.data.data.access_token);
+      signIn(response.data.data.access_token, response.data.data.email);
     }, (error) => {
       console.log(error);
     });

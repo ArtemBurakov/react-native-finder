@@ -67,8 +67,10 @@ function App({ navigation }) {
 
   const authContext = React.useMemo(
     () => ({
-      signIn: async (userAccessToken) => {
+      signIn: async (userAccessToken, email) => {
         await SecureStore.setItemAsync('userAccessToken', `${userAccessToken}`);
+        await SecureStore.setItemAsync('email', `${email}`);
+
         dispatch({ type: 'SIGN_IN', token: `${userAccessToken}` });
       },
       signOut: async () => {
