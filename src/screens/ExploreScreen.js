@@ -33,8 +33,7 @@ RNAndroidLocationEnabler.promptForEnableLocationIfNeeded({
 
 function ExploreScreen() {
   const mapRef = useRef(null);
-  const [markerLatitude, setMarkerLatitude] = useState(49.4551195854);
-  const [markerLongitude, setMarkerLongitude] = useState(32.0339957535);
+  const [markers, setMarkers] = useState([]);
 
   const requestLocationPermission = async () => {
     try {
@@ -118,10 +117,34 @@ function ExploreScreen() {
     });
   }
 
+  const getFriensdLocation = async () => {
+    console.log('Getting friends last location');
+
+    const userAccessToken = await SecureStore.getItemAsync('userAccessToken');
+
+    axios({
+      method: 'get',
+      url: 'http://10.0.2.2:3000/users/',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + userAccessToken,
+      }
+    }).then((response) => {
+      console.log('Friends location get successful!');
+      setMarkers(response.data);
+    }, (error) => {
+      if (error.response.status === 401) {
+        console.log('Unauthorized, logging out.');
+        signOut();
+      }
+    });
+  }
+
   useEffect(() => {
     PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION).then(response => {
       if (response === true) {
         getInitialLocation();
+        getFriensdLocation();
       }
       else {
         requestLocationPermission();
@@ -129,8 +152,7 @@ function ExploreScreen() {
     });
 
     messaging().onMessage(async remoteMessage => {
-      setMarkerLatitude(parseFloat(remoteMessage.data.latitude));
-      setMarkerLongitude(parseFloat(remoteMessage.data.longitude));
+
     });
   }, []);
 
@@ -151,6 +173,13 @@ function ExploreScreen() {
           }
         }
       >
+        {markers.map((user) => (
+          <Marker
+            key={user.id}
+            coordinate={{ latitude : parseFloat(user.last_latitude) , longitude : parseFloat(user.last_longitude) }}
+            title={user.username}
+          />
+        ))}
       </MapView>
     </View>
   );
