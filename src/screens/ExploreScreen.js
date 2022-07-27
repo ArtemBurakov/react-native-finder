@@ -1,27 +1,28 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, View, StatusBar, PermissionsAndroid } from 'react-native';
+import React, {useState, useEffect, useRef} from 'react';
+import {StyleSheet, View, StatusBar, PermissionsAndroid} from 'react-native';
 
-import MapView, { PROVIDER_GOOGLE, Marker } from 'react-native-maps';
+import MapView, {PROVIDER_GOOGLE, Marker} from 'react-native-maps';
 import Geolocation from 'react-native-geolocation-service';
 import RNAndroidLocationEnabler from 'react-native-android-location-enabler';
 
+import AuthContext from '../context/AuthContext';
 import axios from 'axios';
-import * as SecureStore from 'expo-secure-store';
+import EncryptedStorage from 'react-native-encrypted-storage';
 import messaging from '@react-native-firebase/messaging';
 
 RNAndroidLocationEnabler.promptForEnableLocationIfNeeded({
   interval: 10000,
   fastInterval: 5000,
 })
-  .then((data) => {
+  .then(data => {
     console.log('GPS is ' + data);
     // The user has accepted to enable the location services
     // data can be :
     //  - "already-enabled" if the location services has been already enabled
     //  - "enabled" if user has clicked on OK button in the popup
   })
-  .catch((err) => {
-    console.log(err);
+  .catch(error => {
+    console.log(error);
     // The user has not accepted to enable the location services or something went wrong during the process
     // "err" : { "code" : "ERR00|ERR01|ERR02|ERR03", "message" : "message"}
     // codes :
@@ -35,6 +36,8 @@ function ExploreScreen() {
   const mapRef = useRef(null);
   const [markers, setMarkers] = useState([]);
 
+  const {signOut} = React.useContext(AuthContext);
+
   const requestLocationPermission = async () => {
     try {
       const granted = await PermissionsAndroid.request(
@@ -46,14 +49,14 @@ function ExploreScreen() {
             'so we can know where you are.',
           buttonNeutral: 'Ask Me Later',
           buttonNegative: 'Cancel',
-          buttonPositive: 'OK'
-        }
+          buttonPositive: 'OK',
+        },
       );
       if (granted === PermissionsAndroid.RESULTS.GRANTED) {
         console.log('Location permission approved');
         getInitialLocation();
       } else {
-        console.log("Location permission denied");
+        console.log('Location permission denied');
       }
     } catch (err) {
       console.warn(err);
@@ -62,128 +65,138 @@ function ExploreScreen() {
 
   const getInitialLocation = () => {
     Geolocation.getCurrentPosition(
-      (position) => {
+      position => {
         const latitude = position.coords.latitude;
         const longitude = position.coords.longitude;
-
         navigateCamereToLocation(latitude, longitude);
       },
-      (err) => {
-        console.log(err);
+      error => {
+        console.log(error);
       },
-      { enableHighAccuracy: true }
+      {enableHighAccuracy: true},
     );
-  }
+  };
 
   const navigateCamereToLocation = (newLatitude, newLongitude) => {
     // Animate camera to your location
     if (mapRef.current) {
       const newCamera = {
-        center: { latitude: newLatitude, longitude: newLongitude },
+        center: {latitude: newLatitude, longitude: newLongitude},
         zoom: 17,
         heading: 0,
         pitch: 45,
         altitude: 5,
-      }
-      mapRef.current.animateCamera(newCamera, { duration: 2500 });
+      };
+      mapRef.current.animateCamera(newCamera, {duration: 2500});
     }
-  }
+  };
 
   const sendCoordinatesToServer = async (latitude, longitude) => {
-    console.log('Sending coordinates to server');
+    const session = await EncryptedStorage.getItem('userSession');
+    if (session) {
+      const email = JSON.parse(session).email;
+      const userAccessToken = JSON.parse(session).token;
 
-    const userAccessToken = await SecureStore.getItemAsync('userAccessToken');
-    const email = await SecureStore.getItemAsync('email');
-
-    axios({
-      method: 'post',
-      url: 'http://10.0.2.2:3000/users/coordinates/',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + userAccessToken,
-      },
-      data: {
-        email: email,
-        latitude: `${latitude}`,
-        longitude: `${longitude}`
-      }
-    }).then((response) => {
-      console.log('Coordinates send successful!');
-    }, (error) => {
-      if (error.response.status === 401) {
-        console.log('Unauthorized, logging out.');
-        signOut();
-      }
-    });
-  }
+      axios({
+        method: 'post',
+        url: 'http://192.168.88.18:3000/api/v1/users/location',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + userAccessToken,
+        },
+        data: {
+          email: email,
+          last_latitude: `${latitude}`,
+          last_longitude: `${longitude}`,
+        },
+      }).then(
+        () => {},
+        error => {
+          if (error.response.status === 401) {
+            console.log('Unauthorized, logging out.');
+            signOut();
+          }
+        },
+      );
+    }
+  };
 
   const getFriensdLocation = async () => {
     console.log('Getting friends last location');
 
-    const userAccessToken = await SecureStore.getItemAsync('userAccessToken');
+    const session = await EncryptedStorage.getItem('userSession');
+    if (session) {
+      const userAccessToken = JSON.parse(session).token;
 
-    axios({
-      method: 'get',
-      url: 'http://10.0.2.2:3000/users/',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + userAccessToken,
-      }
-    }).then((response) => {
-      console.log('Friends location get successful!');
-      setMarkers(response.data);
-    }, (error) => {
-      if (error.response.status === 401) {
-        console.log('Unauthorized, logging out.');
-        signOut();
-      }
-    });
-  }
+      axios({
+        method: 'get',
+        url: 'http://192.168.88.18:3000/users/',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + userAccessToken,
+        },
+      }).then(
+        response => {
+          console.log('Friends location get successful!');
+          setMarkers(response.data);
+        },
+        error => {
+          if (error.response.status === 401) {
+            console.log('Unauthorized, logging out.');
+            signOut();
+          }
+        },
+      );
+    }
+  };
 
   useEffect(() => {
-    PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION).then(response => {
+    PermissionsAndroid.check(
+      PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+    ).then(response => {
       if (response === true) {
         getInitialLocation();
         getFriensdLocation();
-      }
-      else {
+      } else {
         requestLocationPermission();
       }
     });
 
-    messaging().onMessage(async remoteMessage => {
-
-    });
+    messaging().onMessage(async remoteMessage => {});
   }, []);
 
   return (
     <View style={styles.container}>
-      <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
+      <StatusBar
+        translucent
+        backgroundColor="transparent"
+        barStyle="dark-content"
+      />
       <MapView
         ref={mapRef}
         style={styles.map}
         provider={PROVIDER_GOOGLE}
         showsUserLocation={true}
-        onUserLocationChange={
-          (e) => {
-            latitude = e.nativeEvent.coordinate.latitude;
-            longitude = e.nativeEvent.coordinate.longitude;
-
-            sendCoordinatesToServer(latitude, longitude);
-          }
-        }
-      >
-        {markers.map((user) => (
+        onUserLocationChange={e => {
+          sendCoordinatesToServer(
+            e.nativeEvent.coordinate.latitude,
+            e.nativeEvent.coordinate.longitude,
+          );
+        }}>
+        {markers.map(user => (
           <Marker
             key={user.id}
-            coordinate={{ latitude : parseFloat(user.last_latitude) , longitude : parseFloat(user.last_longitude) }}
+            coordinate={{
+              latitude: parseFloat(user.last_latitude),
+              longitude: parseFloat(user.last_longitude),
+            }}
             title={user.username}
           />
         ))}
       </MapView>
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {

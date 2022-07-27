@@ -1,18 +1,18 @@
 import * as React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
+import {NavigationContainer} from '@react-navigation/native';
+import {createStackNavigator} from '@react-navigation/stack';
 
 import HomeScreen from './src/screens/HomeScreen';
 import SignInScreen from './src/screens/SignInScreen';
 import SignUpScreen from './src/screens/SignUpScreen';
 import SplashScreen from './src/screens/SplashScreen';
 
-import * as SecureStore from 'expo-secure-store';
+import EncryptedStorage from 'react-native-encrypted-storage';
 import AuthContext from './src/context/AuthContext';
 
 const Stack = createStackNavigator();
 
-function App({ navigation }) {
+function App({}) {
   const [state, dispatch] = React.useReducer(
     (prevState, action) => {
       switch (action.type) {
@@ -40,26 +40,28 @@ function App({ navigation }) {
       isLoading: true,
       isSignout: false,
       userAccessToken: null,
-    }
+    },
   );
 
   React.useEffect(() => {
     // Fetch the token from storage then navigate to our appropriate place
     const bootstrapAsync = async () => {
-      let userAccessToken;
-
       try {
-        // Restore token stored in `SecureStore` or any other encrypted storage
-        userAccessToken = await SecureStore.getItemAsync('userAccessToken');
-      } catch (e) {
-        // Restoring token failed
+        let userAccessToken;
+        const session = await EncryptedStorage.getItem('userSession');
+        if (session) {
+          // Restore token stored in encrypted storage
+          userAccessToken = JSON.parse(session).token;
+          console.log('User access token restored successfully');
+        }
+
+        // After restoring token, we may need to validate it in production apps
+        // This will switch to the App screen or Auth screen and this loading
+        // screen will be unmounted and thrown away.
+        dispatch({type: 'RESTORE_TOKEN', token: userAccessToken});
+      } catch (error) {
+        console.log('Restoring token failed: ' + error);
       }
-
-      // After restoring token, we may need to validate it in production apps
-
-      // This will switch to the App screen or Auth screen and this loading
-      // screen will be unmounted and thrown away.
-      dispatch({ type: 'RESTORE_TOKEN', token: userAccessToken });
     };
 
     bootstrapAsync();
@@ -68,17 +70,31 @@ function App({ navigation }) {
   const authContext = React.useMemo(
     () => ({
       signIn: async (userAccessToken, email) => {
-        await SecureStore.setItemAsync('userAccessToken', `${userAccessToken}`);
-        await SecureStore.setItemAsync('email', `${email}`);
-
-        dispatch({ type: 'SIGN_IN', token: `${userAccessToken}` });
+        try {
+          await EncryptedStorage.setItem(
+            'userSession',
+            JSON.stringify({
+              email: email,
+              token: userAccessToken,
+            }),
+          );
+          dispatch({type: 'SIGN_IN', token: `${userAccessToken}`});
+        } catch (error) {
+          console.log('Error while saving user log in information: ' + error);
+        }
       },
       signOut: async () => {
-        await SecureStore.deleteItemAsync('userAccessToken');
-        dispatch({ type: 'SIGN_OUT' });
+        try {
+          await EncryptedStorage.removeItem('userSession');
+          dispatch({type: 'SIGN_OUT'});
+        } catch (error) {
+          console.log(
+            'Error while removing user information on log out: ' + error,
+          );
+        }
       },
     }),
-    []
+    [],
   );
 
   return (
@@ -87,16 +103,32 @@ function App({ navigation }) {
         <Stack.Navigator>
           {state.isLoading ? (
             // We haven't finished checking for the token yet
-            <Stack.Screen name="Splash" component={SplashScreen} options={{headerShown:false}} />
+            <Stack.Screen
+              name="Splash"
+              component={SplashScreen}
+              options={{headerShown: false}}
+            />
           ) : state.userAccessToken == null ? (
             // No token found, user isn't signed in
             <>
-              <Stack.Screen name="SignIn" component={SignInScreen} options={{headerShown:false}} />
-              <Stack.Screen name="SignUp" component={SignUpScreen} options={{headerShown:false}} />
+              <Stack.Screen
+                name="SignIn"
+                component={SignInScreen}
+                options={{headerShown: false}}
+              />
+              <Stack.Screen
+                name="SignUp"
+                component={SignUpScreen}
+                options={{headerShown: false}}
+              />
             </>
           ) : (
             // User is signed in
-            <Stack.Screen name="Home" component={HomeScreen} options={{headerShown:false}} />
+            <Stack.Screen
+              name="Home"
+              component={HomeScreen}
+              options={{headerShown: false}}
+            />
           )}
         </Stack.Navigator>
       </NavigationContainer>

@@ -1,3 +1,4 @@
-import { createContext } from 'react';
+/* eslint-disable no-undef */
+import {createContext} from 'react';
 
 export default AuthContext = createContext();
