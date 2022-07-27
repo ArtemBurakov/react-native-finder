@@ -9,15 +9,6 @@ function SignUpScreen({navigation}) {
   const [password, setPassword] = React.useState('');
 
   const signUpUser = () => {
-    console.log(
-      'SignUp -> Username = ' +
-        username +
-        ', Password = ' +
-        password +
-        ', Email = ' +
-        email,
-    );
-
     axios({
       method: 'post',
       url: 'http://192.168.88.18:3000/api/v1/users',

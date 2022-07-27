@@ -8,7 +8,6 @@ import RNAndroidLocationEnabler from 'react-native-android-location-enabler';
 import AuthContext from '../context/AuthContext';
 import axios from 'axios';
 import EncryptedStorage from 'react-native-encrypted-storage';
-import messaging from '@react-native-firebase/messaging';
 
 RNAndroidLocationEnabler.promptForEnableLocationIfNeeded({
   interval: 10000,
@@ -122,22 +121,20 @@ function ExploreScreen() {
   };
 
   const getFriensdLocation = async () => {
-    console.log('Getting friends last location');
-
     const session = await EncryptedStorage.getItem('userSession');
     if (session) {
+      const email = JSON.parse(session).email;
       const userAccessToken = JSON.parse(session).token;
 
       axios({
         method: 'get',
-        url: 'http://192.168.88.18:3000/users/',
+        url: `http://192.168.88.18:3000/api/v1/users/locations/${email}`,
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer ' + userAccessToken,
         },
       }).then(
         response => {
-          console.log('Friends location get successful!');
           setMarkers(response.data);
         },
         error => {
@@ -156,13 +153,14 @@ function ExploreScreen() {
     ).then(response => {
       if (response === true) {
         getInitialLocation();
-        getFriensdLocation();
+        const interval = setInterval(() => getFriensdLocation(), 10000);
+        return () => {
+          clearInterval(interval);
+        };
       } else {
         requestLocationPermission();
       }
     });
-
-    messaging().onMessage(async remoteMessage => {});
   }, []);
 
   return (
@@ -178,10 +176,9 @@ function ExploreScreen() {
         provider={PROVIDER_GOOGLE}
         showsUserLocation={true}
         onUserLocationChange={e => {
-          sendCoordinatesToServer(
-            e.nativeEvent.coordinate.latitude,
-            e.nativeEvent.coordinate.longitude,
-          );
+          const latitude = e.nativeEvent.coordinate.latitude;
+          const longitude = e.nativeEvent.coordinate.longitude;
+          sendCoordinatesToServer(latitude, longitude);
         }}>
         {markers.map(user => (
           <Marker
