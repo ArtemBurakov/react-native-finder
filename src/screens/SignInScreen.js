@@ -13,7 +13,7 @@ function SignInScreen({navigation}) {
   const signInUser = () => {
     axios({
       method: 'post',
-      url: 'http://192.168.88.18:3000/api/v1/users/login',
+      url: 'http://192.168.88.23:3000/api/v1/users/login',
       data: {
         email: email,
         password: password,

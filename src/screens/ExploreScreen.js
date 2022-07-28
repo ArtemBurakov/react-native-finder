@@ -98,7 +98,7 @@ function ExploreScreen() {
 
       axios({
         method: 'post',
-        url: 'http://192.168.88.18:3000/api/v1/users/location',
+        url: 'http://192.168.88.23:3000/api/v1/users/location',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer ' + userAccessToken,
@@ -128,7 +128,7 @@ function ExploreScreen() {
 
       axios({
         method: 'get',
-        url: `http://192.168.88.18:3000/api/v1/users/locations/${email}`,
+        url: `http://192.168.88.23:3000/api/v1/users/locations/${email}`,
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer ' + userAccessToken,

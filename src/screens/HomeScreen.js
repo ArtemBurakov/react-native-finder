@@ -2,7 +2,7 @@ import * as React from 'react';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import Icon from 'react-native-ionicons';
 
-import MessagesScreen from './MessagesScreen';
+import SearchScreen from './SearchScreen';
 import ExploreScreen from './ExploreScreen';
 import FriendsScreen from './FriendsScreen';
 
@@ -79,7 +79,7 @@ function HomeScreen() {
 
       axios({
         method: 'post',
-        url: 'http://192.168.88.18:3000/api/v1/fcm-token',
+        url: 'http://192.168.88.23:3000/api/v1/fcm-token',
         headers: {
           'Content-Type': 'application/json',
           Authorization: 'Bearer ' + userAccessToken,
@@ -116,23 +116,24 @@ function HomeScreen() {
       screenOptions={({route}) => ({
         tabBarIcon: ({focused, color, size}) => {
           let iconName;
-
-          if (route.name === 'Messages') {
+          if (route.name === 'Search') {
             iconName = focused ? 'chatbubbles' : 'chatbubbles-outline';
           } else if (route.name === 'Explore') {
             iconName = focused ? 'earth' : 'earth-outline';
           } else if (route.name === 'Friends') {
             iconName = focused ? 'people' : 'people-outline';
           }
-
-          // You can return any component that you like here!
           return <Icon name={iconName} size={size} color={color} />;
         },
         activeTintColor: 'royalblue',
         inactiveTintColor: 'gray',
       })}>
-      <Tab.Screen name="Messages" component={MessagesScreen} />
-      <Tab.Screen name="Explore" component={ExploreScreen} />
+      <Tab.Screen name="Search" component={SearchScreen} />
+      <Tab.Screen
+        name="Explore"
+        component={ExploreScreen}
+        options={{headerShown: false}}
+      />
       <Tab.Screen name="Friends" component={FriendsScreen} />
     </Tab.Navigator>
   );

@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState} from 'react';
 import {
   StyleSheet,
   StatusBar,
@@ -9,71 +9,74 @@ import {
 } from 'react-native';
 import axios from 'axios';
 import AuthContext from './../context/AuthContext';
+import SearchBar from 'react-native-dynamic-search-bar';
 import EncryptedStorage from 'react-native-encrypted-storage';
-import {useIsFocused} from '@react-navigation/native';
 
-function FriendsScreen() {
+function SearchScreen() {
   const [data, setData] = useState([]);
+  const [value, setValue] = useState('');
   const {signOut} = React.useContext(AuthContext);
-  const isFocused = useIsFocused();
-
-  useEffect(() => {
-    if (isFocused) {
-      getUserFriends();
-    }
-  }, [isFocused]);
 
   const renderItem = ({item}) => (
     <View style={styles.item}>
       <Text style={styles.username}>{item.username}</Text>
       <Text style={styles.email}>{item.email}</Text>
-      <Button title="Delete friend" onPress={() => deleteFriend(item.email)} />
+      <Button
+        style={styles.button}
+        title="Add to friend"
+        onPress={() => addFriend(item.email)}
+      />
     </View>
   );
 
-  const deleteFriend = async friend_email => {
+  const addFriend = async friend_email => {
     const session = await EncryptedStorage.getItem('userSession');
     if (session) {
       const email = JSON.parse(session).email;
       const userAccessToken = JSON.parse(session).token;
 
       axios({
-        method: 'delete',
-        url: `http://192.168.88.23:3000/api/v1/users/friend/${email}/${friend_email}`,
+        method: 'post',
+        url: 'http://192.168.88.23:3000/api/v1/users/friend',
         headers: {
           'Content-Type': 'application/json',
           Authorization: 'Bearer ' + userAccessToken,
         },
+        data: {
+          email: email,
+          friend_email: friend_email,
+        },
       }).then(
         response => {
-          getUserFriends();
+          console.log(response.status);
         },
         error => {
           if (error.response.status === 401) {
             console.log('Unauthorized, logging out.');
             signOut();
+          } else if (error.response.status === 400) {
+            console.log('User already in your friends list!');
           }
         },
       );
     }
   };
 
-  const getUserFriends = async () => {
+  const findFriends = async () => {
     const session = await EncryptedStorage.getItem('userSession');
     if (session) {
-      const email = JSON.parse(session).email;
       const userAccessToken = JSON.parse(session).token;
 
       axios({
         method: 'get',
-        url: `http://192.168.88.23:3000/api/v1/users/friends/${email}`,
+        url: `http://192.168.88.23:3000/api/v1/users/username/${value}`,
         headers: {
           'Content-Type': 'application/json',
           Authorization: 'Bearer ' + userAccessToken,
         },
       }).then(
         response => {
-          setData(response.data);
+          setData([response.data]);
         },
         error => {
           if (error.response.status === 401) {
@@ -92,13 +95,22 @@ function FriendsScreen() {
         backgroundColor="transparent"
         barStyle="dark-content"
       />
+      <SearchBar
+        style={styles.searchBar}
+        placeholder="Enter user name"
+        onClearPress={() => {
+          setValue('');
+          setData([]);
+        }}
+        onChangeText={text => setValue(text)}
+        onSearchPress={() => findFriends()}
+      />
       <FlatList
         style={styles.flatList}
         data={data}
         renderItem={renderItem}
         keyExtractor={item => item.id}
       />
-      <Button title="Sign out" onPress={signOut} />
     </View>
   );
 }
@@ -106,6 +118,10 @@ function FriendsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  searchBar: {
+    marginTop: 10,
+    marginBottom: 10,
   },
   item: {
     marginBottom: 10,
@@ -127,4 +143,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default FriendsScreen;
+export default SearchScreen;

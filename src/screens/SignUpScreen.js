@@ -11,7 +11,7 @@ function SignUpScreen({navigation}) {
   const signUpUser = () => {
     axios({
       method: 'post',
-      url: 'http://192.168.88.18:3000/api/v1/users',
+      url: 'http://192.168.88.23:3000/api/v1/users',
       data: {
         username: username,
         password: password,
