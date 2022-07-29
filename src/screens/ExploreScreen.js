@@ -11,7 +11,7 @@ import Geolocation from 'react-native-geolocation-service';
 import RNAndroidLocationEnabler from 'react-native-android-location-enabler';
 
 import AuthContext from '../context/AuthContext';
-import CustomMarker from '../components/CustomMarker';
+import CustomMarker from '../components/customMarker/CustomMarker';
 import axios from 'axios';
 import EncryptedStorage from 'react-native-encrypted-storage';
 
