@@ -11,6 +11,7 @@ import Geolocation from 'react-native-geolocation-service';
 import RNAndroidLocationEnabler from 'react-native-android-location-enabler';
 
 import AuthContext from '../context/AuthContext';
+import CustomMarker from '../components/CustomMarker';
 import axios from 'axios';
 import EncryptedStorage from 'react-native-encrypted-storage';
 
@@ -91,7 +92,7 @@ function ExploreScreen() {
         pitch: 45,
         altitude: 5,
       };
-      mapRef.current.animateCamera(newCamera, {duration: 2500});
+      mapRef.current.animateCamera(newCamera, {duration: 2200});
     }
   };
 
@@ -176,6 +177,11 @@ function ExploreScreen() {
         style={styles.map}
         provider={PROVIDER_GOOGLE}
         showsUserLocation={true}
+        onMarkerPress={e => {
+          const latitude = e.nativeEvent.coordinate.latitude;
+          const longitude = e.nativeEvent.coordinate.longitude;
+          navigateCamereToLocation(latitude, longitude);
+        }}
         onUserLocationChange={e => {
           const latitude = e.nativeEvent.coordinate.latitude;
           const longitude = e.nativeEvent.coordinate.longitude;
@@ -187,9 +193,9 @@ function ExploreScreen() {
             coordinate={{
               latitude: parseFloat(user.last_latitude),
               longitude: parseFloat(user.last_longitude),
-            }}
-            title={user.username}
-          />
+            }}>
+            <CustomMarker user={user} />
+          </Marker>
         ))}
       </MapView>
     </SafeAreaView>
