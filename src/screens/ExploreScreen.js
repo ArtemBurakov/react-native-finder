@@ -1,5 +1,10 @@
 import React, {useState, useEffect, useRef} from 'react';
-import {StyleSheet, View, StatusBar, PermissionsAndroid} from 'react-native';
+import {
+  StyleSheet,
+  StatusBar,
+  SafeAreaView,
+  PermissionsAndroid,
+} from 'react-native';
 
 import MapView, {PROVIDER_GOOGLE, Marker} from 'react-native-maps';
 import Geolocation from 'react-native-geolocation-service';
@@ -164,12 +169,8 @@ function ExploreScreen() {
   }, []);
 
   return (
-    <View style={styles.container}>
-      <StatusBar
-        translucent
-        backgroundColor="transparent"
-        barStyle="dark-content"
-      />
+    <SafeAreaView style={styles.container}>
+      <StatusBar backgroundColor="#fff" barStyle="dark-content" />
       <MapView
         ref={mapRef}
         style={styles.map}
@@ -191,7 +192,7 @@ function ExploreScreen() {
           />
         ))}
       </MapView>
-    </View>
+    </SafeAreaView>
   );
 }
 

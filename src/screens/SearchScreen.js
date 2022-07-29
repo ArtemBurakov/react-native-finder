@@ -1,9 +1,10 @@
 import React, {useState} from 'react';
 import {
   StyleSheet,
-  StatusBar,
   Text,
   View,
+  SafeAreaView,
+  StatusBar,
   FlatList,
   Button,
 } from 'react-native';
@@ -19,13 +20,17 @@ function SearchScreen() {
 
   const renderItem = ({item}) => (
     <View style={styles.item}>
-      <Text style={styles.username}>{item.username}</Text>
-      <Text style={styles.email}>{item.email}</Text>
-      <Button
-        style={styles.button}
-        title="Add to friend"
-        onPress={() => addFriend(item.email)}
-      />
+      <View style={styles.info}>
+        <Text style={styles.username}>{item.username}</Text>
+        <Text style={styles.email}>{item.email}</Text>
+      </View>
+      <View style={styles.button}>
+        <Button
+          title="Add friend"
+          color={'#32cd32'}
+          onPress={() => addFriend(item.email)}
+        />
+      </View>
     </View>
   );
 
@@ -89,12 +94,8 @@ function SearchScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <StatusBar
-        translucent
-        backgroundColor="transparent"
-        barStyle="dark-content"
-      />
+    <SafeAreaView style={styles.container}>
+      <StatusBar backgroundColor="#fff" barStyle="dark-content" />
       <SearchBar
         style={styles.searchBar}
         placeholder="Enter user name"
@@ -111,7 +112,7 @@ function SearchScreen() {
         renderItem={renderItem}
         keyExtractor={item => item.id}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -123,13 +124,22 @@ const styles = StyleSheet.create({
     marginTop: 10,
     marginBottom: 10,
   },
+  info: {
+    flexGrow: 1,
+  },
+  button: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   item: {
+    flexDirection: 'row',
+    alignSelf: 'stretch',
     marginBottom: 10,
-    marginLeft: 20,
-    marginRight: 20,
     padding: 15,
     backgroundColor: '#fff',
     borderRadius: 10,
+    marginLeft: 20,
+    marginRight: 20,
   },
   username: {
     fontSize: 18,
@@ -139,7 +149,7 @@ const styles = StyleSheet.create({
   email: {
     fontSize: 15,
     marginTop: 5,
-    marginBottom: 10,
+    marginBottom: 5,
   },
 });
 

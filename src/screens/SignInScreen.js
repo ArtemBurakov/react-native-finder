@@ -21,7 +21,11 @@ function SignInScreen({navigation}) {
     }).then(
       response => {
         console.log('The log in is done');
-        signIn(response.data.token, response.data.email);
+        signIn(
+          response.data.token,
+          response.data.username,
+          response.data.email,
+        );
       },
       error => {
         console.log(error);

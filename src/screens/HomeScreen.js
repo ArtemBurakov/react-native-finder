@@ -1,6 +1,6 @@
 import * as React from 'react';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
-import Icon from 'react-native-ionicons';
+import Icon from 'react-native-vector-icons/Ionicons';
 
 import SearchScreen from './SearchScreen';
 import ExploreScreen from './ExploreScreen';
@@ -82,7 +82,7 @@ function HomeScreen() {
         url: 'http://192.168.88.23:3000/api/v1/fcm-token',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: 'Bearer ' + userAccessToken,
+          'Authorization': 'Bearer ' + userAccessToken,
         },
         data: {
           email: email,
@@ -117,7 +117,7 @@ function HomeScreen() {
         tabBarIcon: ({focused, color, size}) => {
           let iconName;
           if (route.name === 'Search') {
-            iconName = focused ? 'chatbubbles' : 'chatbubbles-outline';
+            iconName = focused ? 'search' : 'search-outline';
           } else if (route.name === 'Explore') {
             iconName = focused ? 'earth' : 'earth-outline';
           } else if (route.name === 'Friends') {

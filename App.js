@@ -1,6 +1,7 @@
 import * as React from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
+import {SafeAreaProvider} from 'react-native-safe-area-context';
 
 import HomeScreen from './src/screens/HomeScreen';
 import SignInScreen from './src/screens/SignInScreen';
@@ -69,11 +70,12 @@ function App({}) {
 
   const authContext = React.useMemo(
     () => ({
-      signIn: async (userAccessToken, email) => {
+      signIn: async (userAccessToken, username, email) => {
         try {
           await EncryptedStorage.setItem(
             'userSession',
             JSON.stringify({
+              username: username,
               email: email,
               token: userAccessToken,
             }),
@@ -98,41 +100,43 @@ function App({}) {
   );
 
   return (
-    <AuthContext.Provider value={authContext}>
-      <NavigationContainer>
-        <Stack.Navigator>
-          {state.isLoading ? (
-            // We haven't finished checking for the token yet
-            <Stack.Screen
-              name="Splash"
-              component={SplashScreen}
-              options={{headerShown: false}}
-            />
-          ) : state.userAccessToken == null ? (
-            // No token found, user isn't signed in
-            <>
+    <SafeAreaProvider>
+      <AuthContext.Provider value={authContext}>
+        <NavigationContainer>
+          <Stack.Navigator>
+            {state.isLoading ? (
+              // We haven't finished checking for the token yet
               <Stack.Screen
-                name="SignIn"
-                component={SignInScreen}
+                name="Splash"
+                component={SplashScreen}
                 options={{headerShown: false}}
               />
+            ) : state.userAccessToken == null ? (
+              // No token found, user isn't signed in
+              <>
+                <Stack.Screen
+                  name="SignIn"
+                  component={SignInScreen}
+                  options={{headerShown: false}}
+                />
+                <Stack.Screen
+                  name="SignUp"
+                  component={SignUpScreen}
+                  options={{headerShown: false}}
+                />
+              </>
+            ) : (
+              // User is signed in
               <Stack.Screen
-                name="SignUp"
-                component={SignUpScreen}
+                name="Home"
+                component={HomeScreen}
                 options={{headerShown: false}}
               />
-            </>
-          ) : (
-            // User is signed in
-            <Stack.Screen
-              name="Home"
-              component={HomeScreen}
-              options={{headerShown: false}}
-            />
-          )}
-        </Stack.Navigator>
-      </NavigationContainer>
-    </AuthContext.Provider>
+            )}
+          </Stack.Navigator>
+        </NavigationContainer>
+      </AuthContext.Provider>
+    </SafeAreaProvider>
   );
 }
 
